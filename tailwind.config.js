@@ -16,6 +16,11 @@ module.exports = {
         sans: ["var(--skin-font-sans)", ...defaultTheme.fontFamily.sans],
       },
     },
+    colors: {
+      'primary': '#F59E0B',
+      'secondary': '#111827',
+      'bgContainer': '#F8FAFC'
+    },
   },
   plugins: [require("@tailwindcss/typography"), require("@tailwindcss/forms")],
 };

@@ -11,6 +11,6 @@
     "volta"
   ],
   "[typescriptreact]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }

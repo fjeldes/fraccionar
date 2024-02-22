@@ -23,11 +23,19 @@
     "format": "biome check --apply ."
   },
   "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.10",
+    "@mui/material": "^5.15.10",
+    "@mui/x-date-pickers": "^6.19.4",
     "clsx": "^2.1.0",
+    "dayjs": "^1.11.10",
     "endent": "^2.1.0",
+    "graphql-request": "^6.1.0",
     "next": "14.1.0",
     "next-themes": "^0.2.1",
     "react": "18.2.0",
+    "react-date-picker": "^10.6.0",
     "react-dom": "18.2.0"
   },
   "devDependencies": {
