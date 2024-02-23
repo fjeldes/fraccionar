@@ -1,48 +1,57 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import graphQLClient from "../../GraphQL/graphQLClient";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { EXCHANGE_RATES } from "~/GraphQL/queries";
+import { EXCHANGE_RATES, getUf, getUfPairAt } from "~/GraphQL/queries";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import ItemUf from "./itemUf";
+import { Query } from "~/utils/types";
+import dayjs, { Dayjs } from "dayjs";
 
-export default function VariationUF({}: any) {
-  const [initDate, setInitDate] = useState<Date>(new Date());
+export default function VariationUF() {
+  const [initDate, setInitDate] = useState<Dayjs>(dayjs());
   const [initDateFormated, setInitDateFormated] = useState<string | undefined>(
     ""
   );
   const [endDateFormated, setEndDateFormated] = useState<string | undefined>(
     ""
   );
-  const [endDate, setEndDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Dayjs>(dayjs());
   const [variation, setVariation] = useState<number | null>(null);
   const [valueUfInitDate, setValueUfInitDate] = useState<number>(0);
   const [valueUfEndDate, setValueUfEndDate] = useState<number>(0);
+  const [minDate, setMinDate] = useState<Date | number>(0);
+  const [maxDate, setMaxDate] = useState<Date | number>(0);
 
   const handleCalculate = async () => {
     const initDateFormated = initDate.toISOString().split("T")[0];
     const endDateFormated = endDate.toISOString().split("T")[0];
     setInitDateFormated(initDateFormated);
     setEndDateFormated(endDateFormated);
-    const variablesInitDate = { pairAt: initDateFormated };
-    const variablesEndDate = { pairAt: endDateFormated };
+    const variablesInitDate = { first: 1, pairAt: initDateFormated };
+    const variablesEndDate = { first: 1, pairAt: endDateFormated };
 
-    const data1 = await graphQLClient.request(
+    const dataInit = await graphQLClient.request(
       EXCHANGE_RATES,
       variablesInitDate
     );
-    const data2 = await graphQLClient.request(EXCHANGE_RATES, variablesEndDate);
+    const dataEnd = await graphQLClient.request(
+      EXCHANGE_RATES,
+      variablesEndDate
+    );
 
-    const valueUfInit = data1.exchange_rates.edges[0].node.pair_numeric;
-    const valueUfEnd = data2.exchange_rates.edges[0].node.pair_numeric;
-    setValueUfInitDate(valueUfInit);
-    setValueUfEndDate(valueUfEnd);
-    const variacionPorcentual =
-      ((valueUfEnd - valueUfInit) / valueUfInit) * 100;
+    const valueUfInit = getUf(dataInit as Query);
+    const valueUfEnd = getUf(dataEnd as Query);
+    if (valueUfInit && valueUfEnd) {
+      setValueUfInitDate(valueUfInit);
+      setValueUfEndDate(valueUfEnd);
+      const variacionPorcentual =
+        ((valueUfEnd - valueUfInit) / valueUfInit) * 100;
 
-    setVariation(variacionPorcentual);
+      setVariation(variacionPorcentual);
+    }
   };
 
   const styles = {
@@ -52,6 +61,22 @@ export default function VariationUF({}: any) {
       color: "#F59E0B",
     },
   };
+
+  const getFirstAndLastUf = async () => {
+    const dataFirst = await graphQLClient.request(EXCHANGE_RATES, { first: 1 });
+    const dataLast = await graphQLClient.request(EXCHANGE_RATES, { last: 1 });
+    const dateMin = getUfPairAt(dataLast as Query);
+    const dateMax = getUfPairAt(dataFirst as Query);
+    if (dateMin && dateMax) {
+      setMinDate(new Date(dateMin));
+      setMaxDate(new Date(dateMax));
+    }
+  };
+
+  useEffect(() => {
+    getFirstAndLastUf();
+  }, []);
+
   return (
     <>
       <div className="flex mb-5 justify-center items-center gap-x-10 mt-10">
@@ -75,10 +100,18 @@ export default function VariationUF({}: any) {
       <div className="flex justify-center">
         <div className="grid grid-cols-2 gap-x-5">
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker onChange={(date) => setInitDate(date as Date)} />
+            <DatePicker
+              minDate={dayjs(minDate)}
+              maxDate={endDate}
+              onChange={(date) => setInitDate(date as Dayjs)}
+            />
           </LocalizationProvider>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker onChange={(date) => setEndDate(date as Date)} />
+            <DatePicker
+              maxDate={dayjs(maxDate)}
+              minDate={initDate}
+              onChange={(date) => setEndDate(date as Dayjs)}
+            />
           </LocalizationProvider>
         </div>
       </div>

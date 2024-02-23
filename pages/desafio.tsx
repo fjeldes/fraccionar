@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import Container from "~/components/ui/Container";
 import type { GetStaticProps } from "next";
 import graphQLClient from "../GraphQL/graphQLClient";
-import { EXCHANGE_RATES } from "../GraphQL/queries";
+import { EXCHANGE_RATES, getUf } from "../GraphQL/queries";
 import VariationUF from "~/components/uf/variation";
 import TableUF from "~/components/uf/tableUf";
+import { Exchange_RatesConnection, Query } from "~/utils/types";
 
 export const getStaticProps: GetStaticProps = async () => {
   const currentDateFilter = new Date().toISOString().split("T")[0];
@@ -24,9 +25,16 @@ export const getStaticProps: GetStaticProps = async () => {
   };
 };
 
-export default function PagesChallenge({ data, currentDate }: any) {
+interface Props {
+  data: Query;
+  currentDate: string;
+}
+
+export default function PagesChallenge({ data, currentDate }: Props) {
   const [quantityUf, setQuantityUf] = useState(1);
-  const valueUf = data.exchange_rates.edges[0].node.pair_numeric;
+
+  const valueToValidate = getUf(data);
+  const valueUf = valueToValidate ? valueToValidate : 0;
   return (
     <>
       <div className="bg-secondary h-5"></div>
@@ -79,8 +87,8 @@ export default function PagesChallenge({ data, currentDate }: any) {
               </div>
             </div>
           </div>
-          <VariationUF/>
-          <TableUF/>
+          <VariationUF />
+          <TableUF />
         </div>
       </Container>
     </>
